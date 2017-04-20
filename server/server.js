@@ -18,6 +18,18 @@ io.on('connection', (socket) => {
     //     createdAt: 123
     // });
 
+    socket.emit('newMessageEvent', {
+        from: 'admin',
+        text: 'Welcome to chat app',
+        createdAt: new Date().getTime()
+    });
+
+    socket.broadcast.emit('newMessageEvent', {
+        from: 'admin',
+        text: 'New user has joined',
+        createdAt: new Date().getTime()
+    });
+
     socket.on('createMessageEvent', (message) => {
         console.log(message);
         io.emit('newMessageEvent', {
