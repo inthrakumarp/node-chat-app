@@ -1,9 +1,9 @@
 var generateMessage = (from, text) => {
-    console.log({
-         from,
-         text,
-        createdAt: new Date().getTime()
-    });
+    // console.log({
+    //      from,
+    //      text,
+    //     createdAt: new Date().getTime()
+    // });
     return {
          from,
          text,
