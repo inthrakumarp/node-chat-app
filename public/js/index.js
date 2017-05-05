@@ -12,6 +12,17 @@ socket.on('newMessageEvent', function (newMessage) {
     jQuery('#messages').append(li);
 })    
 
+socket.on('newLocationEvent', function (locationMessage) {
+    var li = jQuery('<li></li>');
+    var a = jQuery('<a target="_blank">My current location</a>');
+
+    li.text(`${locationMessage.from}`);
+    a.attr('href', locationMessage.url);
+    li.append(a);
+
+    jQuery('#messages').append(li);
+})
+
 socket.emit('createMessageEvent', {
     from: 'Inthra',
     text: 'ASL pls  '
@@ -30,4 +41,20 @@ jQuery('#message-form').on('submit', function(e){
         from: 'Inthra',
         text: jQuery('[name=message]').val()
     }, function(){})
+});
+
+var locationElement = jQuery("#send-location");
+locationElement.on("click", function (){
+    if(!navigator.geolocation){
+        alert('Your browser does not  support geolocation');
+    }
+
+    navigator.geolocation.getCurrentPosition(function (position){
+        socket.emit('createLocationEvent', {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude
+        });
+    }, function (){
+        alert("Not able to get the geo location");
+    })
 })
