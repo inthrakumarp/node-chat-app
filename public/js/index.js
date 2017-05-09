@@ -16,7 +16,7 @@ socket.on('newLocationEvent', function (locationMessage) {
     var li = jQuery('<li></li>');
     var a = jQuery('<a target="_blank">My current location</a>');
 
-    li.text(`${locationMessage.from}`);
+    li.text(`${locationMessage.from} : `);
     a.attr('href', locationMessage.url);
     li.append(a);
 
@@ -37,10 +37,13 @@ socket.on('disconnect', () => {
 jQuery('#message-form').on('submit', function(e){
     e.preventDefault();
 
+    var messageBox = jQuery('[name=message]');
     socket.emit('createMessageEvent', {
         from: 'Inthra',
-        text: jQuery('[name=message]').val()
-    }, function(){})
+        text: messageBox.val()
+    }, function(){
+        messageBox.val('');
+    })
 });
 
 var locationElement = jQuery("#send-location");
@@ -48,13 +51,15 @@ locationElement.on("click", function (){
     if(!navigator.geolocation){
         alert('Your browser does not  support geolocation');
     }
-
+    locationElement.attr('disabled', 'disabled').text('Sending location...');
     navigator.geolocation.getCurrentPosition(function (position){
         socket.emit('createLocationEvent', {
             latitude: position.coords.latitude,
             longitude: position.coords.longitude
         });
+        locationElement.removeAttr('disabled').text('Send location');   
     }, function (){
         alert("Not able to get the geo location");
+        locationElement.removeAttr('disabled').text('Send location');  
     })
 })
