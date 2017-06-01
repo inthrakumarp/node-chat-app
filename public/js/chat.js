@@ -1,8 +1,18 @@
 var socket = io();
                 
-socket.on('connect', () => {
-    console.log('Connected to server');
-})
+socket.on('connect', function() {
+    var params = jQuery.deparam(window.location.search);
+    // console.log('Connected to server');
+
+    socket.emit('join', params, function(err) {
+        if(err){
+            alert(err);
+            window.location.href = "/";
+        } else{
+            console.log("No error");
+        }
+    });
+});
 
 function scrollBottom(){
     var messages = jQuery("#messages");
@@ -48,12 +58,12 @@ socket.on('newLocationEvent', function (locationMessage) {
     jQuery("#messages").append(html);
 })
 
-socket.emit('createMessageEvent', {
-    from: 'Inthra',
-    text: 'ASL pls  '
-}, function (data) {
-    console.log('Got it', data);
-})
+// socket.emit('createMessageEvent', {
+//     from: 'Inthra',
+//     text: 'ASL pls  '
+// }, function (data) {
+//     console.log('Got it', data);
+// })
 
 socket.on('disconnect', () => {
     console.log('Disconnected from server');
