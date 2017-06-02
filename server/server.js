@@ -6,10 +6,12 @@ const express = require('express');
 const {generateMessage, generateLocationMessage} = require('./utils/message');
 const {isRealString} = require('./utils/validations');
 const publicPath = path.join(__dirname, '/../public');
+const {User} = require('./utils/users');
 
 var app = express();
 var server = http.createServer(app);
 var io = socketIO(server);
+var users = new User();
 
 io.on('connection', (socket) => {
     console.log('New user connected');
@@ -29,13 +31,24 @@ io.on('connection', (socket) => {
     
     socket.on('join', (params, callback) => {
         if(!isRealString(params.name) || !isRealString(params.room)){
-            callback('Name and Room name are required');
+            // any further code should not be executed if the expected information in not available
+            return callback('Name and Room name are required');
         }
 
+        // join a chat room
         socket.join(params.room);
 
+        //remove the user if he is already in the room
+        users.removeUser(socket.id);
+        // add a new user to the chat room
+        users.addUser(socket.id, params.name, params.room);
+
+        // send the updated user list to the client by emitting the updateUserList event by calling the getUserList function
+        io.to(params.room).emit('updateUserList', users.getUserList(params.room));
+        // users.getUserList(params)
         socket.emit('newMessageEvent', generateMessage('Admin', 'Welcome to chat app'));
 
+        // send a message to everyone in the room that a new user has joined
         socket.broadcast.to(params.room).emit('newMessageEvent', generateMessage('Admin', `${params.name} has joined.`));
 
 
@@ -53,8 +66,15 @@ io.on('connection', (socket) => {
     })
 
     socket.on('disconnect', () => {
-        console.log('Client disconnected');
+        // console.log('Client disconnected');
+        var user = users.removeUser(socket.id);
+
+        if(user){
+            io.to(user.room).emit('updateUserList', users.getUserList(user.room));
+            io.to(user.room).emit('newMessageEvent', generateMessage('Admin', `${user.name} has left.`));
+        }
     })
+
 });
 
 app.use(express.static(publicPath));
