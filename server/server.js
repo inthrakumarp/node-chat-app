@@ -57,12 +57,20 @@ io.on('connection', (socket) => {
 
     socket.on('createMessageEvent', (message, callback) => {
         // console.log(message);
-        io.emit('newMessageEvent', generateMessage(message.from, message.text));
+        var user = users.getUser(socket.id);
+        
+        if(user && isRealString(message.text)){
+             io.to(user.room).emit('newMessageEvent', generateMessage(user.name, message.text));
+        }
+       
         callback('This is from server');
     })
 
     socket.on('createLocationEvent', (coords) => {
-        io.emit('newLocationEvent', generateLocationMessage('Inthra', coords.latitude, coords.longitude));
+        var user = users.getUser(socket.id);
+        if(user){
+            io.to(user.room).emit('newLocationEvent', generateLocationMessage(user.name, coords.latitude, coords.longitude));
+        }
     })
 
     socket.on('disconnect', () => {
