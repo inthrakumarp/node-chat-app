@@ -2,7 +2,7 @@ var socket = io();
                 
 socket.on('connect', function() {
     var params = jQuery.deparam(window.location.search);
-    // console.log('Connected to server');
+     console.log('Connected to server');
 
     socket.emit('join', params, function(err) {
         if(err){

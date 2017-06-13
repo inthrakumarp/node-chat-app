@@ -35,21 +35,37 @@ io.on('connection', (socket) => {
             return callback('Name and Room name are required');
         }
 
+        var user = users.getUserByName(params.name);
+
+        if(user) {
+            return callback('Display name is already used in this room, please use a different name.')
+        }
+
+        var roomLcase = params.room.toLowerCase();
         // join a chat room
-        socket.join(params.room);
+        socket.join(roomLcase);
 
         //remove the user if he is already in the room
         users.removeUser(socket.id);
         // add a new user to the chat room
-        users.addUser(socket.id, params.name, params.room);
+        users.addUser(socket.id, params.name, roomLcase);
+
+//console.log("Socket rooms", Object.keys(io.sockets.adapter.rooms));
+// Object.keys(io.sockets.adapter.rooms).forEach(function(room){
+//     var socket1 = io.sockets.adapter.rooms[room];
+//     // if(socket1.connected){
+//         console.log("socket-", socket1);
+//     // }
+// })
 
         // send the updated user list to the client by emitting the updateUserList event by calling the getUserList function
-        io.to(params.room).emit('updateUserList', users.getUserList(params.room));
+        io.to(roomLcase).emit('updateUserList', users.getUserList(roomLcase));
+        console.log('Updated user list');
         // users.getUserList(params)
         socket.emit('newMessageEvent', generateMessage('Admin', 'Welcome to chat app'));
 
         // send a message to everyone in the room that a new user has joined
-        socket.broadcast.to(params.room).emit('newMessageEvent', generateMessage('Admin', `${params.name} has joined.`));
+        socket.broadcast.to(roomLcase).emit('newMessageEvent', generateMessage('Admin', `${params.name} has joined.`));
 
 
         callback();
